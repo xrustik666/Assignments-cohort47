@@ -29,11 +29,12 @@ function requestData(url) {
 function renderImage(imageAdress) {
   const image = document.createElement('img');
   image.src = imageAdress;
+  image.alt = 'Best picture in the world';
   document.querySelector('body').appendChild(image);
 }
 
 function renderError(error) {
-  const errorMessage = document.createElement('p');
+  const errorMessage = document.createElement('h1');
   errorMessage.textContent = error.message;
   document.querySelector('body').appendChild(errorMessage);
 }
