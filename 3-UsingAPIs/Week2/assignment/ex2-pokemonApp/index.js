@@ -22,73 +22,99 @@ Use async/await and try/catch to handle promises.
 Try and avoid using global variables. As much as possible, try and use function 
 parameters and return values to pass data back and forth.
 ------------------------------------------------------------------------------*/
-// Gets all data aboout pokemons
+
+// Data fetcher
 async function fetchData(url) {
-  try {
-    const response = await fetch(url);
-  
-    if (response.ok) {
-      return await response.json();
-    }
-
-    throw new Error('HTTP error, status = ' + response.status);
-  } catch(error) {
-    console.log(error);
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
   }
+  return response.json();
 }
 
-async function fetchAndPopulatePokemons(url, pokemonList, pokemonButton) {
-  pokemonButton.addEventListener('click', async function() {
-    try {
-      const data = await fetchData(url);
-      const results = data.results;
-  
-      results.forEach((result) => {
-        const option = document.createElement('option');
-        option.textContent = result.name;
-        option.value = result.url;
-        pokemonList.appendChild(option);
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  })
-  
-}
-
-async function fetchImage(url) {
-  const img = document.querySelector('img');
-
+// Appends select field. Appends pokemons name into select field
+async function fetchAndPopulatePokemons(url) {
   try {
     const data = await fetchData(url);
-    const source = data.sprites.other.dream_world.front_default;
+    const results = data.results;
 
-    img.src =  source;
-    img.alt = data.name;
+    // Create and append select list
+    const select = document.createElement('select');
+    document.body.appendChild(select);
+
+    // Create and append options elements with pokemons' names
+    for (let i = 0; i < results.length; i++) {
+      const option = document.createElement('option');
+      option.value = results[i].name;
+      option.textContent = results[i].name;
+      select.appendChild(option);
+    }
   } catch (error) {
-    console.log(error);
+    return error;
   }
 }
 
+// Gets images addresses
+async function fetchPokemonImages(url) {
+  const data = await fetchData(url);
+  const results = data.results;
 
-function main() {
-  const body = document.querySelector('body');
+  const urls = [];
+  for (let i = 0; i < results.length; i++) {
+    urls.push(results[i].url);
+  }
 
-  const select = document.createElement('select');
+  async function getImages(array) {
+    const sprites = [];
+    for (let i = 0; i < array.length; i++) {
+      const result = await fetchData(array[i]);
 
-  const button = document.createElement('button');
-  button.textContent = "Get Pokemon";
+      sprites.push(result.sprites.front_default);
+    }
 
-  const img = document.createElement('img');
+    return sprites;
+  }
 
-  body.append(button, select, img);
-  
-  select.addEventListener('change', (e) => {
-    fetchImage(e.target.value)
-  });
-
-  fetchAndPopulatePokemons('https://pokeapi.co/api/v2/pokemon?limit=151', select, button);
+  return getImages(urls);
 }
 
+// Adds events to click on option
+async function showImages(url) {
+  try {
+    await fetchAndPopulatePokemons(url);
+
+    const options = document.querySelectorAll('option');
+
+    const pokemonAvatar = document.createElement('img');
+    pokemonAvatar.alt = "Pokemon's avatar";
+
+    for (let i = 0; i < options.length; i++) {
+      options[i].addEventListener('click', async function () {
+        const images = await fetchPokemonImages(url);
+        pokemonAvatar.src = images[i];
+        document.body.appendChild(pokemonAvatar);
+      });
+    }
+  } catch (error) {
+    return error;
+  }
+}
+
+// Function caller
+function main() {
+  const ADDRESS = 'https://pokeapi.co/api/v2/pokemon?limit=151';
+
+  // Create and append button
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = 'Press';
+  document.body.appendChild(button);
+
+  button.addEventListener('click', function () {
+    if (!document.querySelector('select')) {
+      showImages(ADDRESS);
+    }
+  });
+}
 
 window.addEventListener('load', main);

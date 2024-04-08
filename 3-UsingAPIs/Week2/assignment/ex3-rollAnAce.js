@@ -13,18 +13,19 @@ Full description at: https://github.com/HackYourFuture/Assignments/blob/main/3-U
 const rollDie = require('../../helpers/pokerDiceRoller');
 
 async function rollDieUntil(wantedValue) {
-  const response = await rollDie();
+  let response;
 
-  if (response !== wantedValue) {
-    return rollDieUntil(wantedValue);
-  }
-  return value;
+  do {
+    response = await rollDie();
+  } while (response !== wantedValue);
+
+  return response;
 }
 
 async function main() {
   try {
     const results = await rollDieUntil('ACE');
-  
+
     console.log('Resolved!', results);
   } catch (error) {
     console.log('Rejected!', error.message);

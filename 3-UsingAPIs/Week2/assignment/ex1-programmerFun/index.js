@@ -26,9 +26,9 @@ function requestData(url) {
   });
 }
 
-function renderImage(imageAdress) {
+function renderImage(imageAddress) {
   const image = document.createElement('img');
-  image.src = imageAdress;
+  image.src = imageAddress;
   image.alt = 'Best picture in the world';
   document.querySelector('body').appendChild(image);
 }
